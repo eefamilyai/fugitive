@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="night">#0B0F15</color>
+    <color name="signal">#FF5A36</color>
+    <color name="zone">#A855F7</color>
+    <color name="ic_launcher_background">#0B0F15</color>
+</resources>

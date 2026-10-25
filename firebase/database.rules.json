@@ -1,0 +1,91 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "lobbies": {
+      "$code": {
+        ".read": "auth != null && data.child('members').child(auth.uid).exists()",
+        ".write": "auth != null && !newData.exists() && data.child('info/hostId').val() === auth.uid",
+        ".validate": "$code.matches(/^[A-HJ-KM-NP-Z2-9]{6}$/)",
+        "info": {
+          ".read": "auth != null",
+          ".write": "auth != null && ((!data.exists() && newData.child('hostId').val() === auth.uid) || data.child('hostId').val() === auth.uid)",
+          ".validate": "newData.hasChildren(['hostId'])",
+          "hostId": {
+            ".write": "auth != null && newData.val() === auth.uid && root.child('lobbies').child($code).child('members').child(auth.uid).exists() && (data.val() === auth.uid || root.child('lobbies').child($code).child('info/hostId').val() === auth.uid || root.child('lobbies').child($code).child('members').child(data.val()).child('online').val() !== true || root.child('lobbies').child($code).child('members').child(data.val()).child('lastActive').val() < now - 45000)",
+            ".validate": "newData.isString()"
+          },
+          "phase": {
+            ".validate": "newData.val() === 'LOBBY' || newData.val() === 'PLAYING' || newData.val() === 'RESULTS'"
+          },
+          "locked": {
+            ".validate": "newData.isBoolean()"
+          }
+        },
+        "config": {
+          ".write": "auth != null && root.child('lobbies').child($code).child('info/hostId').val() === auth.uid"
+        },
+        "roster": {
+          ".write": "auth != null && root.child('lobbies').child($code).child('info/hostId').val() === auth.uid"
+        },
+        "game": {
+          ".write": "auth != null && root.child('lobbies').child($code).child('info/hostId').val() === auth.uid"
+        },
+        "events": {
+          ".write": "auth != null && root.child('lobbies').child($code).child('info/hostId').val() === auth.uid"
+        },
+        "members": {
+          "$uid": {
+            ".read": "auth != null && auth.uid === $uid",
+            ".write": "auth != null && ((auth.uid === $uid && (data.exists() || (newData.child('name').exists() && root.child('lobbies').child($code).child('info').exists() && root.child('lobbies').child($code).child('info/locked').val() !== true))) || (!newData.exists() && root.child('lobbies').child($code).child('info/hostId').val() === auth.uid))",
+            ".validate": "newData.hasChildren(['name'])",
+            "name": {
+              ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 30"
+            },
+            "avatar": {
+              ".validate": "newData.isString() && newData.val().length <= 16"
+            },
+            "ready": {
+              ".write": "auth != null && root.child('lobbies').child($code).child('info/hostId').val() === auth.uid && data.parent().exists()"
+            }
+          }
+        },
+        "locations": {
+          ".write": "auth != null && root.child('lobbies').child($code).child('info/hostId').val() === auth.uid",
+          "$uid": {
+            ".write": "auth != null && auth.uid === $uid && root.child('lobbies').child($code).child('members').child(auth.uid).exists()",
+            ".validate": "!newData.exists() || (newData.child('lat').isNumber() && newData.child('lng').isNumber())"
+          }
+        },
+        "trails": {
+          ".write": "auth != null && root.child('lobbies').child($code).child('info/hostId').val() === auth.uid",
+          "$uid": {
+            "$id": {
+              ".write": "auth != null && auth.uid === $uid && root.child('lobbies').child($code).child('members').child(auth.uid).exists() && !data.exists()"
+            }
+          }
+        },
+        "actions": {
+          ".write": "auth != null && root.child('lobbies').child($code).child('info/hostId').val() === auth.uid",
+          "$id": {
+            ".write": "auth != null && !data.exists() && newData.child('by').val() === auth.uid && root.child('lobbies').child($code).child('members').child(auth.uid).exists()",
+            ".validate": "newData.hasChildren(['type', 'by'])"
+          }
+        },
+        "markers": {
+          ".write": "auth != null && root.child('lobbies').child($code).child('info/hostId').val() === auth.uid",
+          "$id": {
+            ".write": "auth != null && root.child('lobbies').child($code).child('members').child(auth.uid).exists() && ((!data.exists() && newData.child('by').val() === auth.uid) || (!newData.exists() && data.child('by').val() === auth.uid))"
+          }
+        },
+        "chat": {
+          ".write": "auth != null && root.child('lobbies').child($code).child('info/hostId').val() === auth.uid",
+          "$id": {
+            ".write": "auth != null && root.child('lobbies').child($code).child('members').child(auth.uid).exists() && !data.exists() && newData.child('by').val() === auth.uid",
+            ".validate": "newData.child('text').isString() && newData.child('text').val().length <= 280"
+          }
+        }
+      }
+    }
+  }
+}

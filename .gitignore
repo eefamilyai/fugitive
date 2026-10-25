@@ -1,0 +1,18 @@
+*.iml
+.gradle/
+.kotlin/
+/local.properties
+/keystore.properties
+*.jks
+*.keystore
+.idea/
+.DS_Store
+build/
+/captures
+.externalNativeBuild
+.cxx
+# Firebase config is project-specific; keep it out of public repos if you prefer
+# app/google-services.json
+firebase-debug.log
+database-debug.log
+ui-debug.log
