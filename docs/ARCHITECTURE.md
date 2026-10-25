@@ -89,8 +89,10 @@ and bind it: `single { MyBackend() } bind GameBackend::class`. Examples: a WebSo
 
 * Overlays: subclass `MapLayer` (own sources and style layers, `install`/`render`), then add it to the list
   passed to `GameMap`. See `ZoneLayer`, `PlayersLayer`, `TrailsLayer`, `PinsLayer`, `RingLayer`.
-* Styles: `MapStyles.register(MapStyle(...))`, or let users paste any MapLibre style URL in Settings
-  (e.g. MapTiler satellite with their own key).
+* Styles: `MapStyles.register(MapStyle(...))`. A style is either a URL (`StyleSource.Url`) or a recipe that`StyleComposer`builds on
+  the device (`StyleSource.Composed`): `Imagery` (raster tiles + optional vector roads/labels restyled for photos), `Shaded`
+  (any vector style + hillshade from Terrarium elevation tiles), `Raster`. Add a recipe type to compose new kinds of maps.
+  Thumbnails live in `core/map/src/main/res/drawable-nodpi/map_preview_<id>.webp`.
 
 ## Add a location source
 

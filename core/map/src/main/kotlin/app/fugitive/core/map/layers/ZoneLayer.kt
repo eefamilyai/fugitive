@@ -56,7 +56,7 @@ class ZoneLayer(id: String = "zone") : MapLayer(id) {
 
     override fun render(style: Style, ctx: MapContext, nowMs: Long) {
         val tint = if (danger) Color.parseColor("#EF4444") else color
-        style.getLayer(sid("shade-l"))?.setProperties(fillColor(tint), fillOpacity(if (ctx.darkStyle) 0.32f else 0.26f))
+        style.getLayer(sid("shade-l"))?.setProperties(fillColor(tint), fillOpacity(if (ctx.darkStyle) 0.30f else 0.13f))
         style.getLayer(sid("edge-l"))?.setProperties(lineColor(tint))
         style.getLayer(sid("edge-glow"))?.setProperties(lineColor(tint))
         val c = current

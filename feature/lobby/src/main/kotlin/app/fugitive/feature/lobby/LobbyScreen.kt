@@ -114,6 +114,7 @@ fun LobbyScreen(onOpenGameSettings: () -> Unit, vm: LobbyViewModel = koinViewMod
     var confirmLeave by remember { mutableStateOf(false) }
     var confirmStart by remember { mutableStateOf(false) }
     var menu by remember { mutableStateOf(false) }
+    var showStyles by remember { mutableStateOf(false) }
     var seenChat by rememberSaveable { mutableIntStateOf(0) }
     val unread = (state.chat.size - seenChat).coerceAtLeast(0)
 
@@ -173,7 +174,11 @@ fun LobbyScreen(onOpenGameSettings: () -> Unit, vm: LobbyViewModel = koinViewMod
             item { if (state.isPractice) PracticeCard() else CodeCard(lobby.code, lobby.info.locked) }
             item {
                 FCard(Modifier.fillMaxWidth(), contentPadding = PaddingValues(0.dp)) {
-                    LobbyMapPreview(lobby, state.locations, state.selfId, state.playArea, state.prefs, Modifier.fillMaxWidth().height(210.dp).clip(RoundedCornerShape(24.dp)))
+                    LobbyMapPreview(
+                        lobby, state.locations, state.selfId, state.playArea, state.prefs,
+                        Modifier.fillMaxWidth().height(240.dp).clip(RoundedCornerShape(24.dp)),
+                        onOpenStyles = { showStyles = true },
+                    )
                 }
             }
             item { ModeSummaryCard(state, vm, onOpenGameSettings) }
@@ -204,6 +209,9 @@ fun LobbyScreen(onOpenGameSettings: () -> Unit, vm: LobbyViewModel = koinViewMod
             Text("Lobby chat", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(horizontal = 20.dp))
             ChatPanel(state.chat, lobby.members, state.selfId, onSend = { t, _ -> vm.sendChat(t) }, modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 16.dp))
         }
+    }
+    if (showStyles) {
+        LobbyStyleSheet(state.prefs, vm::setMapStyle, vm::setTerrainShading, vm::setMap3d, onDismiss = { showStyles = false })
     }
     if (confirmLeave) {
         AlertDialog(

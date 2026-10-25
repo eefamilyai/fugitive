@@ -34,7 +34,7 @@ import kotlinx.coroutines.launch
 class GameViewModel(
     private val sessions: GameSessionManager,
     val engine: GameEngine,
-    prefs: UserPreferences,
+    private val prefs: UserPreferences,
     alerts: GameAlerts,
     private val simulator: SimulatedLocationSource,
 ) : ViewModel() {
@@ -76,6 +76,10 @@ class GameViewModel(
         _toast.value = "Ping sent to your team"
     }
     fun retryLocation() { session?.retryLocation() }
+
+    fun setMapStyle(id: String) = viewModelScope.launch { prefs.setMapStyle(id) }
+    fun setTerrainShading(on: Boolean) = viewModelScope.launch { prefs.setTerrainShading(on) }
+    fun setMap3d(on: Boolean) = viewModelScope.launch { prefs.setMap3d(on) }
 
     val isSimulated: Boolean get() = preferences.value.locationSource == SimulatedLocationSource.ID
     fun setStick(x: Float, y: Float) = simulator.setStick(x, y)

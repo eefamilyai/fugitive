@@ -40,6 +40,9 @@ import app.fugitive.core.map.FitWhenReady
 import app.fugitive.core.map.GameMap
 import app.fugitive.core.map.MapCameraState
 import app.fugitive.core.map.MapStyles
+import app.fugitive.core.map.MapLayersButton
+import app.fugitive.core.map.MapStyleSheet
+import app.fugitive.core.map.ZoomControls
 import app.fugitive.core.map.layers.MapPin
 import app.fugitive.core.map.layers.PinsLayer
 import app.fugitive.core.map.layers.PlayerMarker
@@ -69,6 +72,24 @@ internal fun lobbyMarkers(lobby: LobbySnapshot, locations: Map<PlayerId, Locatio
         )
     }
 
+/** Map type picker wired to the user's preferences. */
+@Composable
+internal fun LobbyStyleSheet(
+    prefs: AppPreferences,
+    onSelect: (String) -> Unit,
+    onTerrain: (Boolean) -> Unit,
+    on3d: (Boolean) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val dark = LocalDarkTheme.current
+    MapStyleSheet(
+        styles = MapStyles.all(prefs.mapTilerKey),
+        selectedId = MapStyles.resolve(prefs.mapStyleId, dark, prefs.customStyleUrl, prefs.mapTilerKey).id,
+        terrainShading = prefs.terrainShading, tilt3d = prefs.map3d,
+        onSelect = { onSelect(it.id) }, onTerrainShading = onTerrain, onTilt3d = on3d, onDismiss = onDismiss,
+    )
+}
+
 /** Small live map of everyone in the lobby with the play-area preview. */
 @Composable
 internal fun LobbyMapPreview(
@@ -78,6 +99,7 @@ internal fun LobbyMapPreview(
     playArea: Circle?,
     prefs: AppPreferences,
     modifier: Modifier = Modifier,
+    onOpenStyles: () -> Unit = {},
 ) {
     val camera = remember { MapCameraState(CameraMode.FREE) }
     val zone = remember { ZoneLayer() }
@@ -94,13 +116,18 @@ internal fun LobbyMapPreview(
             if (playArea == null) addAll(locations.values.map { it.point })
         }
     }
-    GameMap(
-        style = MapStyles.resolve(prefs.mapStyleId, dark, prefs.customStyleUrl),
-        layers = listOf(zone, players),
-        camera = camera,
-        modifier = modifier,
-        rotateGestures = false,
-    )
+    val style = MapStyles.resolve(prefs.mapStyleId, dark, prefs.customStyleUrl, prefs.mapTilerKey)
+    Box(modifier) {
+        GameMap(
+            style = style,
+            layers = listOf(zone, players),
+            camera = camera,
+            modifier = Modifier.fillMaxSize(),
+            rotateGestures = false,
+            terrainShading = prefs.terrainShading,
+        )
+        MapLayersButton(style, onClick = onOpenStyles, modifier = Modifier.align(Alignment.TopEnd).padding(10.dp))
+    }
 }
 
 /** Full-screen map to choose the zone centre. Tap or long-press to place it. */
@@ -114,6 +141,7 @@ internal fun ZonePickerDialog(
     prefs: AppPreferences,
     onDismiss: () -> Unit,
     onPick: (GeoPoint) -> Unit,
+    onOpenStyles: () -> Unit = {},
 ) {
     var center by remember { mutableStateOf(initial ?: locations[selfId]?.point ?: locations.values.firstOrNull()?.point) }
     val camera = remember { MapCameraState(CameraMode.FREE) }
@@ -135,7 +163,8 @@ internal fun ZonePickerDialog(
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
         Box(Modifier.fillMaxSize()) {
             GameMap(
-                style = MapStyles.resolve(prefs.mapStyleId, dark, prefs.customStyleUrl),
+                style = MapStyles.resolve(prefs.mapStyleId, dark, prefs.customStyleUrl, prefs.mapTilerKey),
+                terrainShading = prefs.terrainShading,
                 layers = listOf(zone, players, pin),
                 camera = camera,
                 modifier = Modifier.fillMaxSize(),
@@ -154,11 +183,15 @@ internal fun ZonePickerDialog(
                 FilledTonalIconButton(onClick = onDismiss) { Icon(Icons.Rounded.Close, "Cancel") }
             }
             Column(Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(16.dp).fillMaxWidth()) {
-                Row {
+                Row(verticalAlignment = Alignment.Bottom) {
                     FilledTonalIconButton(onClick = { locations[selfId]?.point?.let { center = it; camera.animateTo(it) } }) {
                         Icon(Icons.Rounded.MyLocation, "Use my location")
                     }
                     Spacer(Modifier.weight(1f))
+                    Column(horizontalAlignment = Alignment.End, verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
+                        MapLayersButton(MapStyles.resolve(prefs.mapStyleId, dark, prefs.customStyleUrl, prefs.mapTilerKey), onClick = onOpenStyles)
+                        ZoomControls(camera)
+                    }
                 }
                 Spacer(Modifier.padding(4.dp))
                 PrimaryButton("Set centre here", onClick = { center?.let(onPick) }, enabled = center != null, modifier = Modifier.fillMaxWidth())

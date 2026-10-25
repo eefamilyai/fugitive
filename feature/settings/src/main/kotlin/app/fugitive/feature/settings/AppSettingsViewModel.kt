@@ -36,6 +36,8 @@ class AppSettingsViewModel(
     fun setHaptics(on: Boolean) = launch { prefs.setHaptics(on) }
     fun setKeepScreenOn(on: Boolean) = launch { prefs.setKeepScreenOn(on) }
     fun setMap3d(on: Boolean) = launch { prefs.setMap3d(on) }
+    fun setTerrainShading(on: Boolean) = launch { prefs.setTerrainShading(on) }
+    fun setMapTilerKey(key: String) = launch { prefs.setMapTilerKey(key) }
     fun setLocationSource(id: String) = launch { prefs.setLocationSource(id) }
     fun setDifficulty(d: Int) = launch { prefs.setPractice(state.value.practiceBots, d) }
     fun replayTutorial(then: () -> Unit) = launch { prefs.setOnboarded(false); then() }

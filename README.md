@@ -4,6 +4,8 @@ Fugitive turns your neighbourhood into a live game of manhunt. One person hosts,
 6-character code, hunters track runners on a live map, and a play zone shrinks until there's nowhere left to hide.
 
 <p>
+<img src="docs/store/screenshots/9_streets_3d.png" width="200">
+<img src="docs/store/screenshots/11_map_types.png" width="200">
 <img src="docs/store/screenshots/2_hunter_map.png" width="200">
 <img src="docs/store/screenshots/3_lobby.png" width="200">
 <img src="docs/store/screenshots/4_game_settings.png" width="200">
@@ -39,8 +41,12 @@ Nine one-tap presets: Classic, Hide & Seek, Battle Royale, The Fugitive, Fair Ch
 - Abilities with uses, duration and cooldown: **Radar scan** (hunters), **Cloak** and **Sonar** (runners)
 - Fairness: stale-location display, disconnect timeout and penalty, minimum GPS accuracy
 
-**The map** – MapLibre vector maps (OpenFreeMap; no API key, no usage limits), five styles plus any
-custom style URL, 3D tilt, smooth marker gliding between GPS fixes, heading arrows, accuracy halos,
+**The map** – 9 map types with a one-tap picker (real previews), all without an API key:
+**Satellite** (aerial imagery with roads, paths and names on top), **Satellite (clean)**, **Streets 3D** (3D buildings, POIs),
+**Terrain** (hill shading from elevation data), **Topographic**, Bright, Minimal, Night and Midnight. Terrain shading can be
+layered onto any street or night map; 3D view tilts the camera. Paste a free MapTiler key to unlock HD satellite, Outdoor
+(contours), Topo and Winter maps, or use any MapLibre style URL. Deep zoom (to building level), +/- buttons, a scale bar, a 350 MB
+tile cache so the play area stays sharp on weak signal, smooth marker gliding between GPS fixes, heading arrows, accuracy halos,
 ghosted "ping" markers with age badges, fading trails, follow / heading-up / overview camera, long-press team pings.
 
 **Location** – Google fused location (falls back to the device GPS without Play services), a foreground

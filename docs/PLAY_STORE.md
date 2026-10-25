@@ -73,6 +73,7 @@ Fugitive is real-world manhunt for your phone. One person hosts, friends join wi
 Over 60 rules to tweak: live tracking or periodic pings, hidden or visible hunters, catch range, secret catch codes, head start, game length, zone size, shrink speed, battle-royale stages, grace periods, and abilities like Radar Scan, Cloak and Sonar. Or pick a preset: Hide & Seek, Battle Royale, The Fugitive, Zombie Outbreak and more.
 
 🗺️ BUILT FOR THE STREET
+• Satellite, 3D streets, terrain and topographic maps — zoom right in to see every alley
 • Smooth live map with trails and heading arrows
 • Heartbeat vibration when a hunter is close
 • Works with the screen off

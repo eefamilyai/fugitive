@@ -63,6 +63,7 @@ import app.fugitive.core.designsystem.component.SectionHeader
 import app.fugitive.core.designsystem.theme.FugitiveColors
 import app.fugitive.core.location.LocationSources
 import app.fugitive.core.map.MapStyles
+import app.fugitive.core.map.MapStyleGrid
 import app.fugitive.core.ui.ProfileEditor
 import app.fugitive.core.ui.rememberPermissionState
 import org.koin.compose.viewmodel.koinViewModel
@@ -117,10 +118,35 @@ fun AppSettingsScreen(onBack: () -> Unit, onReplayTutorial: () -> Unit, vm: AppS
             }
             item {
                 FCard(Modifier.fillMaxWidth()) {
-                    Text("Map style", style = MaterialTheme.typography.titleSmall)
-                    RadioRow("Automatic", "Follows the app theme", prefs.mapStyleId == MapStyles.AUTO) { vm.setMapStyle(MapStyles.AUTO) }
-                    MapStyles.all.forEach { s -> RadioRow(s.name, s.description, prefs.mapStyleId == s.id) { vm.setMapStyle(s.id) } }
-                    RadioRow("Custom style URL", "Any MapLibre style JSON (e.g. MapTiler satellite with your key)", prefs.mapStyleId == MapStyles.CUSTOM) { vm.setMapStyle(MapStyles.CUSTOM) }
+                    Text("Map type", style = MaterialTheme.typography.titleSmall)
+                    Spacer(Modifier.padding(4.dp))
+                    val dark = app.fugitive.core.designsystem.theme.LocalDarkTheme.current
+                    val styles = MapStyles.all(prefs.mapTilerKey)
+                    val selected = MapStyles.resolve(prefs.mapStyleId, dark, prefs.customStyleUrl, prefs.mapTilerKey)
+                    MapStyleGrid(
+                        styles = styles,
+                        selectedId = if (prefs.mapStyleId == MapStyles.CUSTOM) MapStyles.CUSTOM else selected.id,
+                        onSelect = { vm.setMapStyle(it.id) },
+                        modifier = Modifier.heightIn(max = 560.dp),
+                    )
+                    Text(selected.description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 6.dp))
+                    HorizontalDivider(Modifier.padding(vertical = 6.dp))
+                    ToggleRow("Terrain shading", "Shade hills and valleys on street and night maps", prefs.terrainShading, vm::setTerrainShading)
+                    ToggleRow("3D view", "Tilted perspective in-game — buildings pop up", prefs.map3d, vm::setMap3d)
+                    HorizontalDivider(Modifier.padding(vertical = 6.dp))
+                    Text("HD maps (optional)", style = MaterialTheme.typography.titleSmall)
+                    Text(
+                        "Paste a free MapTiler key (maptiler.com → Account → API keys) to unlock HD satellite, outdoor maps with contour lines, topo and winter maps.",
+                        style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    var key by rememberSaveable(prefs.mapTilerKey) { mutableStateOf(prefs.mapTilerKey) }
+                    OutlinedTextField(
+                        value = key, onValueChange = { key = it.trim() }, singleLine = true,
+                        label = { Text("MapTiler API key") }, modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+                        trailingIcon = { TextButton(onClick = { vm.setMapTilerKey(key) }, enabled = key != prefs.mapTilerKey) { Text("Save") } },
+                    )
+                    HorizontalDivider(Modifier.padding(vertical = 6.dp))
+                    RadioRow("Custom style URL", "Any MapLibre style JSON", prefs.mapStyleId == MapStyles.CUSTOM) { vm.setMapStyle(MapStyles.CUSTOM) }
                     if (prefs.mapStyleId == MapStyles.CUSTOM) {
                         OutlinedTextField(
                             value = customUrl, onValueChange = { customUrl = it }, singleLine = true,
@@ -128,9 +154,10 @@ fun AppSettingsScreen(onBack: () -> Unit, onReplayTutorial: () -> Unit, vm: AppS
                             trailingIcon = { TextButton(onClick = { vm.setCustomStyle(customUrl) }) { Text("Apply") } },
                         )
                     }
-                    HorizontalDivider(Modifier.padding(vertical = 6.dp))
-                    ToggleRow("3D tilted map", "Perspective view in-game", prefs.map3d, vm::setMap3d)
-                    Text("Map data © OpenStreetMap contributors · Tiles: OpenFreeMap / OpenMapTiles", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        "Map data © OpenStreetMap contributors · OpenFreeMap / OpenMapTiles · Imagery © Esri, Maxar, Earthstar Geographics · Elevation: Mapzen/AWS",
+                        style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 6.dp),
+                    )
                 }
             }
 
@@ -214,6 +241,8 @@ fun AppSettingsScreen(onBack: () -> Unit, onReplayTutorial: () -> Unit, vm: AppS
 private val LICENSES = listOf(
     "MapLibre Native" to "BSD 2-Clause License. © MapLibre contributors, © Mapbox.",
     "OpenStreetMap data" to "© OpenStreetMap contributors. Available under the Open Database License (ODbL).",
+    "Esri World Imagery & World Topographic Map" to "Imagery © Esri, Maxar, Earthstar Geographics, and the GIS User Community. Topographic map © Esri and contributors.",
+    "Terrain elevation" to "Mapzen Terrain Tiles via AWS Open Data (SRTM, GMTED, NED, ETOPO1 and others).",
     "OpenFreeMap & OpenMapTiles" to "Map tiles by OpenFreeMap. Schema & styles © OpenMapTiles (BSD-3 / CC-BY 4.0).",
     "Jetpack Compose, AndroidX" to "Apache License 2.0. © The Android Open Source Project.",
     "Kotlin, kotlinx.coroutines, kotlinx.serialization" to "Apache License 2.0. © JetBrains s.r.o.",

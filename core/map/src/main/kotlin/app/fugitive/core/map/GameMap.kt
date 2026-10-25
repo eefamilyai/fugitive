@@ -14,6 +14,9 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameMillis
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -45,6 +48,7 @@ fun GameMap(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(),
     tilt3d: Boolean = false,
+    terrainShading: Boolean = true,
     rotateGestures: Boolean = true,
     onMapClick: (GeoPoint) -> Unit = {},
     onMapLongClick: (GeoPoint) -> Unit = {},
@@ -67,8 +71,12 @@ fun GameMap(
     var installedLayers by remember { mutableStateOf<List<MapLayer>>(emptyList()) }
     val ctx = remember(style.dark) { MapContext(context, density.density, style.dark) }
 
+    val composer = remember { StyleComposer.get(context) }
+    var styleError by remember { mutableStateOf<String?>(null) }
+
     val mapView = remember {
         MapLibre.getInstance(context)
+        MapCache.ensureConfigured(context)
         val options = MapLibreMapOptions.createFromAttributes(context)
             .textureMode(true)
             .attributionEnabled(true)
@@ -108,14 +116,11 @@ fun GameMap(
                 isCompassEnabled = false
                 isLogoEnabled = false
             }
-            m.setMaxZoomPreference(19.5)
             m.addOnCameraMoveStartedListener { reason ->
                 if (reason == MapLibreMap.OnCameraMoveStartedListener.REASON_API_GESTURE) gesture()
             }
-            m.addOnCameraMoveListener {
-                camera.bearing = m.cameraPosition.bearing
-                camera.zoom = m.cameraPosition.zoom
-            }
+            m.addOnCameraMoveListener { camera.syncFrom(m) }
+            m.addOnCameraIdleListener { camera.syncFrom(m) }
             m.addOnMapClickListener { latLng ->
                 val pt = m.projection.toScreenLocation(latLng)
                 val hit = currentLayers.firstNotNullOfOrNull { layer ->
@@ -133,12 +138,24 @@ fun GameMap(
     }
 
     // (Re)load the style; layers re-install on every load.
-    LaunchedEffect(map, style.uri) {
+    LaunchedEffect(map, style, terrainShading) {
         val m = map ?: return@LaunchedEffect
-        loadedStyle = null
-        m.setStyle(Style.Builder().fromUri(style.uri)) { s ->
+        m.setMaxZoomPreference(style.maxZoom)
+        val resolved = try {
+            composer.resolve(style, terrainShading).also { styleError = null }
+        } catch (e: Exception) {
+            if (e is kotlinx.coroutines.CancellationException) throw e
+            styleError = e.message
+            ResolvedStyle.Uri((MapStyles.STREETS.source as StyleSource.Url).uri)
+        }
+        val builder = when (resolved) {
+            is ResolvedStyle.Uri -> Style.Builder().fromUri(resolved.uri)
+            is ResolvedStyle.Json -> Style.Builder().fromJson(resolved.json)
+        }
+        m.setStyle(builder) { s ->
             loadedStyle = s
             installedLayers = emptyList()
+            camera.syncFrom(m)
         }
     }
 
@@ -157,7 +174,7 @@ fun GameMap(
 
     LaunchedEffect(map, tilt3d) {
         val m = map ?: return@LaunchedEffect
-        m.easeCamera(org.maplibre.android.camera.CameraUpdateFactory.tiltTo(if (tilt3d) 50.0 else 0.0), 500)
+        m.easeCamera(org.maplibre.android.camera.CameraUpdateFactory.tiltTo(if (tilt3d) 55.0 else 0.0), 600)
     }
 
     // Frame loop: install new layers, render dirty or animating ones.
@@ -186,5 +203,17 @@ fun GameMap(
         }
     }
 
-    AndroidView(factory = { mapView }, modifier = modifier)
+    androidx.compose.foundation.layout.Box(modifier) {
+        AndroidView(factory = { mapView }, modifier = Modifier.matchParentSize())
+        styleError?.let {
+            androidx.compose.material3.Text(
+                "Map type unavailable offline — showing streets",
+                color = androidx.compose.ui.graphics.Color.White,
+                style = androidx.compose.material3.MaterialTheme.typography.labelSmall,
+                modifier = Modifier.align(androidx.compose.ui.Alignment.Center)
+                    .background(androidx.compose.ui.graphics.Color(0x99000000), androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
+            )
+        }
+    }
 }

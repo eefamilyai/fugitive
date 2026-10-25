@@ -37,6 +37,8 @@ data class AppPreferences(
     val practiceDifficulty: Int = 1,
     val lastConfig: GameConfig? = null,
     val map3d: Boolean = false,
+    val terrainShading: Boolean = true,
+    val mapTilerKey: String = "",
     val showHints: Boolean = true,
 )
 
@@ -65,6 +67,8 @@ class UserPreferences(private val context: Context) {
         val DIFFICULTY = intPreferencesKey("practice_difficulty")
         val LAST_CONFIG = stringPreferencesKey("last_config")
         val MAP_3D = booleanPreferencesKey("map_3d")
+        val TERRAIN = booleanPreferencesKey("terrain_shading")
+        val MAPTILER = stringPreferencesKey("maptiler_key")
         val HINTS = booleanPreferencesKey("show_hints")
     }
 
@@ -85,6 +89,8 @@ class UserPreferences(private val context: Context) {
             practiceDifficulty = p[K.DIFFICULTY] ?: 1,
             lastConfig = p[K.LAST_CONFIG]?.let { runCatching { json.decodeFromString(GameConfig.serializer(), it) }.getOrNull() },
             map3d = p[K.MAP_3D] ?: false,
+            terrainShading = p[K.TERRAIN] ?: true,
+            mapTilerKey = p[K.MAPTILER] ?: "",
             showHints = p[K.HINTS] ?: true,
         )
     }
@@ -111,6 +117,8 @@ class UserPreferences(private val context: Context) {
     suspend fun setKeepScreenOn(on: Boolean) = edit { it[K.KEEP_SCREEN] = on }
     suspend fun setLocationSource(id: String) = edit { it[K.LOCATION_SOURCE] = id }
     suspend fun setMap3d(on: Boolean) = edit { it[K.MAP_3D] = on }
+    suspend fun setTerrainShading(on: Boolean) = edit { it[K.TERRAIN] = on }
+    suspend fun setMapTilerKey(key: String) = edit { it[K.MAPTILER] = key.trim() }
     suspend fun setShowHints(on: Boolean) = edit { it[K.HINTS] = on }
     suspend fun setPractice(bots: Int, difficulty: Int) = edit {
         it[K.BOTS] = bots.coerceIn(1, 15); it[K.DIFFICULTY] = difficulty.coerceIn(0, 2)

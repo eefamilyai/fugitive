@@ -30,6 +30,26 @@ class MapCameraState(initialMode: CameraMode = CameraMode.FOLLOW) {
         internal set
     var zoom by mutableStateOf(15.5)
         internal set
+    /** Latitude of the camera target (for the scale bar). */
+    var latitude by mutableStateOf(0.0)
+        internal set
+    /** Metres per screen pixel at the camera target. */
+    var metersPerPixel by mutableStateOf(0.0)
+        internal set
+    var tilt by mutableStateOf(0.0)
+        internal set
+    var maxZoom by mutableStateOf(21.0)
+        internal set
+
+    internal fun syncFrom(m: MapLibreMap) {
+        val p = m.cameraPosition
+        bearing = p.bearing
+        zoom = p.zoom
+        tilt = p.tilt
+        latitude = p.target?.latitude ?: latitude
+        maxZoom = m.maxZoomLevel
+        metersPerPixel = runCatching { m.projection.getMetersPerPixelAtLatitude(latitude) }.getOrDefault(0.0)
+    }
     internal var map: MapLibreMap? by mutableStateOf(null)
     private var pendingTarget: GeoPoint? = null
     private var lastFollowAt = 0L
@@ -92,6 +112,8 @@ class MapCameraState(initialMode: CameraMode = CameraMode.FOLLOW) {
     }
 
     fun zoomBy(delta: Double) { map?.easeCamera(CameraUpdateFactory.zoomBy(delta), 250) }
+
+    fun setTilt(degrees: Double) { map?.easeCamera(CameraUpdateFactory.tiltTo(degrees), 500) }
 }
 
 

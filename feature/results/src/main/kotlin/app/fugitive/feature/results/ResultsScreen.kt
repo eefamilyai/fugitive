@@ -105,7 +105,7 @@ fun ResultsScreen(vm: ResultsViewModel = koinViewModel()) {
     ) {
         item { Hero(result.headline, result.detail, won, decided, game, accent, vm.selfId) }
         item {
-            ReplayMap(game, trails, prefs.mapStyleId, prefs.customStyleUrl, Modifier.padding(horizontal = 16.dp).fillMaxWidth().height(280.dp).clip(RoundedCornerShape(24.dp)))
+            ReplayMap(game, trails, prefs, Modifier.padding(horizontal = 16.dp).fillMaxWidth().height(280.dp).clip(RoundedCornerShape(24.dp)))
         }
         item { Awards(game, stats, Modifier.padding(horizontal = 16.dp)) }
         item { SectionHeader("Leaderboard", Modifier.padding(horizontal = 16.dp)) }
@@ -180,7 +180,7 @@ private fun Hero(headline: String, detail: String, won: Boolean, decided: Boolea
 }
 
 @Composable
-private fun ReplayMap(game: GameState, trails: Map<String, List<app.fugitive.model.LocationFix>>, styleId: String, customUrl: String, modifier: Modifier) {
+private fun ReplayMap(game: GameState, trails: Map<String, List<app.fugitive.model.LocationFix>>, prefs: app.fugitive.core.data.prefs.AppPreferences, modifier: Modifier) {
     val camera = remember { MapCameraState(CameraMode.FREE) }
     val zone = remember { ZoneLayer("replay-zone") }
     val lines = remember { TrailsLayer("replay-trails", width = 4f, opacity = 0.9f) }
@@ -203,7 +203,10 @@ private fun ReplayMap(game: GameState, trails: Map<String, List<app.fugitive.mod
             (game.zone?.initial?.let { z -> listOf(0.0, 90.0, 180.0, 270.0).map { Geo.destination(z.center, it, z.radius) } } ?: emptyList())
     }
     Box(modifier) {
-        GameMap(MapStyles.resolve(styleId, dark, customUrl), listOf(zone, lines, ends), camera, Modifier.fillMaxSize())
+        GameMap(
+            MapStyles.resolve(prefs.mapStyleId, dark, prefs.customStyleUrl, prefs.mapTilerKey), listOf(zone, lines, ends), camera,
+            Modifier.fillMaxSize(), terrainShading = prefs.terrainShading,
+        )
         if (trails.isEmpty()) {
             Text(
                 "Loading routes…", modifier = Modifier.align(Alignment.Center).clip(RoundedCornerShape(12.dp))

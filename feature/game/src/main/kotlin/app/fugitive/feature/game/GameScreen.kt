@@ -73,6 +73,10 @@ import app.fugitive.core.map.CameraMode
 import app.fugitive.core.map.GameMap
 import app.fugitive.core.map.MapCameraState
 import app.fugitive.core.map.MapStyles
+import app.fugitive.core.map.MapLayersButton
+import app.fugitive.core.map.MapStyleSheet
+import app.fugitive.core.map.ScaleBar
+import app.fugitive.core.map.ZoomControls
 import app.fugitive.core.ui.ChatPanel
 import app.fugitive.core.ui.Format
 import app.fugitive.core.ui.LocalUnitSystem
@@ -112,6 +116,7 @@ fun GameScreen(onOpenAppSettings: () -> Unit, vm: GameViewModel = koinViewModel(
     var dialog by rememberSaveable { mutableStateOf<String?>(null) } // code | report | leave | end | ping
     var pingPoint by remember { mutableStateOf<GeoPoint?>(null) }
     var menu by remember { mutableStateOf(false) }
+    var showStyles by rememberSaveable { mutableStateOf(false) }
     var seenEvents by rememberSaveable { mutableIntStateOf(0) }
     var seenChat by rememberSaveable { mutableIntStateOf(0) }
     val banners = remember { mutableStateListOf<Pair<GameEvent, Long>>() }
@@ -177,13 +182,15 @@ fun GameScreen(onOpenAppSettings: () -> Unit, vm: GameViewModel = koinViewModel(
 
     Box(Modifier.fillMaxSize()) {
         BindGameLayers(layers, p, vm.session?.history, markers, selected, units)
+        val mapStyle = MapStyles.resolve(prefs.mapStyleId, dark, prefs.customStyleUrl, prefs.mapTilerKey)
         GameMap(
-            style = MapStyles.resolve(prefs.mapStyleId, dark, prefs.customStyleUrl),
+            style = mapStyle,
             layers = layers.all,
             camera = camera,
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(top = 150.dp, bottom = 230.dp),
             tilt3d = prefs.map3d,
+            terrainShading = prefs.terrainShading,
             onFeatureClick = { _, id -> selected = if (selected == id) null else id; true },
             onMapClick = { selected = null },
             onMapLongClick = { pt -> if (!p.isSpectating) { pingPoint = pt; dialog = "ping" } },
@@ -243,7 +250,15 @@ fun GameScreen(onOpenAppSettings: () -> Unit, vm: GameViewModel = koinViewModel(
             if (camera.bearing != 0.0) {
                 MapButton(Icons.Rounded.Explore, "Reset north", rotation = -camera.bearing.toFloat()) { camera.resetNorth() }
             }
+            MapLayersButton(mapStyle, onClick = { showStyles = true })
+            ZoomControls(camera)
         }
+
+        ScaleBar(
+            camera, format = { Format.distance(it, units) },
+            imperial = units == app.fugitive.core.ui.UnitSystem.IMPERIAL,
+            modifier = Modifier.align(Alignment.CenterStart).padding(start = 14.dp, top = 120.dp),
+        )
 
         // ── Bottom ──────────────────────────────────────────────────────
         Column(
@@ -277,6 +292,19 @@ fun GameScreen(onOpenAppSettings: () -> Unit, vm: GameViewModel = koinViewModel(
 
         if (p.stage == GameStage.COUNTDOWN) CountdownOverlay(p)
         statusOverlay?.let { s -> StatusChangeOverlay(s.title, s.body, s.emoji, s.color) { statusOverlay = null } }
+    }
+
+    if (showStyles) {
+        MapStyleSheet(
+            styles = MapStyles.all(prefs.mapTilerKey),
+            selectedId = MapStyles.resolve(prefs.mapStyleId, dark, prefs.customStyleUrl, prefs.mapTilerKey).id,
+            terrainShading = prefs.terrainShading,
+            tilt3d = prefs.map3d,
+            onSelect = { vm.setMapStyle(it.id) },
+            onTerrainShading = vm::setTerrainShading,
+            onTilt3d = vm::setMap3d,
+            onDismiss = { showStyles = false },
+        )
     }
 
     // ── Dialogs ─────────────────────────────────────────────────────────

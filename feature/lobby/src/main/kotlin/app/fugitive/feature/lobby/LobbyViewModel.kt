@@ -57,8 +57,12 @@ data class LobbyUiState(
 class LobbyViewModel(
     private val sessions: GameSessionManager,
     val engine: GameEngine,
-    prefs: UserPreferences,
+    private val prefs: UserPreferences,
 ) : ViewModel() {
+    fun setMapStyle(id: String) = viewModelScope.launch { prefs.setMapStyle(id) }
+    fun setTerrainShading(on: Boolean) = viewModelScope.launch { prefs.setTerrainShading(on) }
+    fun setMap3d(on: Boolean) = viewModelScope.launch { prefs.setMap3d(on) }
+
     private val sessionFlow: Flow<GameSession?> = sessions.state.map { (it as? SessionState.Active)?.session }
 
     private val _message = MutableStateFlow<String?>(null)
@@ -69,7 +73,8 @@ class LobbyViewModel(
         else combine(s.lobby, s.locations, s.chat, s.connected, prefs.preferences) { lobby, locs, chat, connected, p ->
             val participants = lobby?.membersByJoin?.filter { it.online || s.botControl?.isBot(it.id) == true }.orEmpty()
             val issues = lobby?.let { engine.validate(it.config, participants, it.roster, locs[it.hostId] != null) }.orEmpty()
-            val area = lobby?.let {
+            // Only preview a play area when the shrinking zone is actually enabled.
+            val area = lobby?.takeIf { engine.settings(it.config)[CoreSettings.ZONE_ENABLED] }?.let {
                 GameFactory.playArea(
                     engine.settings(it.config),
                     GameSetupRequest(it.config, participants, it.roster, locs, it.hostId, 0, 0),
@@ -107,8 +112,12 @@ class LobbyViewModel(
 class GameSettingsViewModel(
     private val sessions: GameSessionManager,
     val engine: GameEngine,
-    prefs: UserPreferences,
+    private val prefs: UserPreferences,
 ) : ViewModel() {
+    fun setMapStyle(id: String) = viewModelScope.launch { prefs.setMapStyle(id) }
+    fun setTerrainShading(on: Boolean) = viewModelScope.launch { prefs.setTerrainShading(on) }
+    fun setMap3d(on: Boolean) = viewModelScope.launch { prefs.setMap3d(on) }
+
     private val session get() = sessions.current
     private val _draft = MutableStateFlow<GameConfig?>(null)
     /** Local copy that updates instantly while edits sync to the lobby in the background. */

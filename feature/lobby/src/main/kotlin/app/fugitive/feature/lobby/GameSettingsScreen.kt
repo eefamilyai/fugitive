@@ -57,6 +57,7 @@ fun GameSettingsScreen(onBack: () -> Unit, vm: GameSettingsViewModel = koinViewM
     val prefs by vm.preferences.collectAsStateWithLifecycle()
     var advanced by rememberSaveable { mutableStateOf(false) }
     var picking by remember { mutableStateOf(false) }
+    var pickerStyles by remember { mutableStateOf(false) }
     var confirmReset by remember { mutableStateOf(false) }
     val editable = vm.isHost
     val config = draft
@@ -131,7 +132,11 @@ fun GameSettingsScreen(onBack: () -> Unit, vm: GameSettingsViewModel = koinViewM
                 prefs = prefs,
                 onDismiss = { picking = false },
                 onPick = { vm.setZoneCenter(it); picking = false },
+                onOpenStyles = { pickerStyles = true },
             )
+        }
+        if (pickerStyles) {
+            LobbyStyleSheet(prefs, vm::setMapStyle, vm::setTerrainShading, vm::setMap3d, onDismiss = { pickerStyles = false })
         }
     }
 
