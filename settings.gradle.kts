@@ -14,10 +14,24 @@ pluginManagement {
 }
 
 dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    // Kotlin/JS adds Node.js / Yarn download repositories at project level; settings repositories win.
+    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
     repositories {
         google()
         mavenCentral()
+        // Toolchains downloaded by the Kotlin/JS build of core:engine (web client).
+        ivy("https://nodejs.org/dist") {
+            name = "Node.js distributions"
+            patternLayout { artifact("v[revision]/[artifact](-v[revision]-[classifier]).[ext]") }
+            metadataSources { artifact() }
+            content { includeModule("org.nodejs", "node") }
+        }
+        ivy("https://github.com/yarnpkg/yarn/releases/download") {
+            name = "Yarn distributions"
+            patternLayout { artifact("v[revision]/[artifact](-v[revision]).[ext]") }
+            metadataSources { artifact() }
+            content { includeModule("com.yarnpkg", "yarn") }
+        }
     }
 }
 

@@ -46,8 +46,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import app.fugitive.core.data.session.AbilityState
-import app.fugitive.core.data.session.GameProjection
+import app.fugitive.engine.projection.AbilityState
+import app.fugitive.engine.projection.GameProjection
 import app.fugitive.core.designsystem.component.GlassPanel
 import app.fugitive.core.designsystem.theme.FugitiveColors
 import app.fugitive.core.designsystem.theme.Grotesk

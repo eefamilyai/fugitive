@@ -14,7 +14,9 @@ adding one class and registering it, without editing existing screens.
      backend/*  ──► core/data ──► core/location   core/engine ──► core/model
 ```
 
-* **core/model** and **core/engine** are plain Kotlin/JVM, with no Android dependency. All rules live here and are
+* **core/model** and **core/engine** are Kotlin Multiplatform (JVM + JavaScript), with no Android dependency. The JS build
+  (`./gradlew :core:engine:syncWebEngine`) is copied into `web/src/engine`, and `WebEngine` (jsMain) exposes it to the web client
+  through JSON strings in the database format. **Change a rule once; both clients get it.** All rules live here and are
   covered by fast unit tests (`./gradlew :core:engine:test`).
 * **core/data** knows only the `GameBackend` interface. It never imports Firebase.
 * Build logic is in `build-logic/` (convention plugins). A new feature module's build file is just

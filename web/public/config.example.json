@@ -1,0 +1,13 @@
+{
+  "_comment": "Copy to config.json (served next to index.html). Values come from Firebase console > Project settings > Your apps > Web app.",
+  "firebase": {
+    "apiKey": "AIza...",
+    "authDomain": "your-project.firebaseapp.com",
+    "databaseURL": "https://your-project-default-rtdb.firebaseio.com",
+    "projectId": "your-project",
+    "appId": "1:000000000000:web:0000000000000000"
+  },
+  "emulatorHost": "",
+  "privacyPolicyUrl": "https://fugitive-manhunt.dshai.reggilion.com/privacy.html",
+  "mapTilerKey": ""
+}

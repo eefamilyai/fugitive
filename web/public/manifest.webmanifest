@@ -1,0 +1,22 @@
+{
+  "name": "Fugitive \u2014 real-world manhunt",
+  "short_name": "Fugitive",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0B0F15",
+  "theme_color": "#0B0F15",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

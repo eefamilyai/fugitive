@@ -56,12 +56,20 @@ and battery level shared alongside.
 **Detail** – vibration patterns (heartbeat when a hunter is near, buzzing outside the zone), notifications
 in the background, event feed, status overlays, a results screen with replay map, awards and stats, practice mode against bots, onboarding, metric/imperial, dark/light theme.
 
+## Web version
+
+`web/` is a browser client for your own server (Docker + nginx). It uses the same Firebase database,
+security rules **and game engine** (the Kotlin rules compiled to JavaScript), so web and Android players play in
+the same lobbies, and either can host. See **[web/README.md](web/README.md)**.
+
+<img src="docs/web-game.png" width="640">
+
 ## Project layout
 
 ```
 app/                 Application, navigation, DI wiring
-core/model           Serializable domain types (pure Kotlin)
-core/engine          Rules: modes, settings schema, zone, visibility, referee (pure Kotlin, unit-tested)
+core/model           Serializable domain types (Kotlin Multiplatform: JVM + JS)
+core/engine          Rules: modes, settings, zone, visibility, referee, projection (KMP, unit-tested; JS build feeds web/)
 core/data            Backend contract, session, referee loop, prefs, foreground service, alerts
 core/location        Location sources (fused / platform / simulated)
 core/map             MapLibre Compose wrapper + layer API
@@ -71,6 +79,7 @@ backend/local        On-device practice backend with bots
 backend/firebase     Firebase Realtime Database backend
 feature/*            home, lobby, game, results, settings
 firebase/            Security rules + emulator config
+web/                 Browser client (React + MapLibre GL + Firebase JS), Docker/nginx
 docs/                Architecture, Firebase setup, Play Store guide, store assets
 ```
 

@@ -46,7 +46,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import app.fugitive.core.data.session.GameProjection
+import app.fugitive.engine.projection.GameProjection
 import app.fugitive.core.data.session.LocationProblem
 import app.fugitive.core.designsystem.component.GlassPanel
 import app.fugitive.core.designsystem.component.Pill

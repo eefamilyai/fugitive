@@ -1,0 +1,13 @@
+{
+  "name": "fugitive-engine",
+  "version": "0.0.0-unspecified",
+  "main": "fugitive-engine.mjs",
+  "types": "fugitive-engine.d.mts",
+  "devDependencies": {
+    "typescript": "6.0.3"
+  },
+  "dependencies": {},
+  "peerDependencies": {},
+  "optionalDependencies": {},
+  "bundledDependencies": []
+}

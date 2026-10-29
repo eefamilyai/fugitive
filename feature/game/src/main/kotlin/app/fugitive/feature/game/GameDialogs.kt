@@ -35,8 +35,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import app.fugitive.core.data.session.GameProjection
-import app.fugitive.core.data.session.ProjectedPlayer
+import app.fugitive.engine.projection.GameProjection
+import app.fugitive.engine.projection.ProjectedPlayer
 import app.fugitive.core.designsystem.component.EmojiAvatar
 import app.fugitive.core.designsystem.component.Pill
 import app.fugitive.core.designsystem.theme.FugitiveColors

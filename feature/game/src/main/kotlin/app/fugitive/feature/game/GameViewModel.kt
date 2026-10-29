@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import app.fugitive.core.data.alerts.GameAlerts
 import app.fugitive.core.data.prefs.AppPreferences
 import app.fugitive.core.data.prefs.UserPreferences
-import app.fugitive.core.data.session.GameProjection
+import app.fugitive.engine.projection.GameProjection
 import app.fugitive.core.data.session.GameSession
 import app.fugitive.core.data.session.GameSessionManager
 import app.fugitive.core.data.session.LocationProblem

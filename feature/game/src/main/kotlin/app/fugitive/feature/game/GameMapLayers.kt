@@ -4,8 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.toArgb
-import app.fugitive.core.data.session.GameProjection
-import app.fugitive.core.data.session.LocationHistory
+import app.fugitive.engine.projection.GameProjection
+import app.fugitive.engine.projection.LocationHistory
 import app.fugitive.core.designsystem.theme.FugitiveColors
 import app.fugitive.core.map.MapLayer
 import app.fugitive.core.map.layers.MapPin

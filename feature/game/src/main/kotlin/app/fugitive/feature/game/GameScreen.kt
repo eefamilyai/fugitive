@@ -63,7 +63,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import app.fugitive.core.data.session.GameProjection
+import app.fugitive.engine.projection.GameProjection
 import app.fugitive.core.designsystem.component.EmojiAvatar
 import app.fugitive.core.designsystem.component.GlassPanel
 import app.fugitive.core.designsystem.component.Pill
@@ -401,7 +401,7 @@ private fun EventBanner(e: GameEvent) {
 @Composable
 private fun SelectedPlayerCard(
     p: GameProjection,
-    sp: app.fugitive.core.data.session.ProjectedPlayer,
+    sp: app.fugitive.engine.projection.ProjectedPlayer,
     onClose: () -> Unit,
     onCatch: () -> Unit,
     onCenter: () -> Unit,

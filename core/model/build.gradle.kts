@@ -1,8 +1,12 @@
 plugins {
-    alias(libs.plugins.fugitive.jvm.library)
+    alias(libs.plugins.fugitive.kmp.library)
     alias(libs.plugins.kotlin.serialization)
 }
 
-dependencies {
-    api(libs.kotlinx.serialization.json)
+kotlin {
+    sourceSets {
+        commonMain.dependencies {
+            api(libs.kotlinx.serialization.json)
+        }
+    }
 }

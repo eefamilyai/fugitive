@@ -1,5 +1,8 @@
 package app.fugitive.core.data.session
 
+import app.fugitive.engine.projection.GameProjection
+import app.fugitive.engine.projection.GameProjector
+import app.fugitive.engine.projection.LocationHistory
 import app.fugitive.core.data.backend.GameBackend
 import app.fugitive.core.data.backend.LobbyConnection
 import app.fugitive.core.data.prefs.UserPreferences
@@ -322,12 +325,7 @@ class GameSession internal constructor(
                 locations = locations.value, hostId = selfId, round = snap.info.round + 1, now = now,
             ),
         ).getOrThrow()
-        val mode = engine.mode(game.modeId)
-        val hunters = game.players.values.filter { it.role == Role.HUNTER }.joinToString { it.name }
-        val intro = GameEvent(
-            round = game.round, type = EventTypes.GAME_STARTED, at = now, importance = 1,
-            text = if (mode.usesHunterSelection && hunters.isNotEmpty()) "${mode.name} — ${mode.roleLabel(Role.HUNTER)}: $hunters" else "${mode.name} begins",
-        )
+        val intro = GameFactory.introEvent(engine, game, now)
         lastWritten = null
         connection.startGame(game, listOf(intro))
     }

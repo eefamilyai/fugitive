@@ -1,0 +1,10 @@
+# docker compose up -d   → http://<server>:8080   (put HTTPS in front — see README)
+services:
+  fugitive-web:
+    build: .
+    image: fugitive-web:latest
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - ./config.json:/usr/share/nginx/html/config.json:ro

@@ -37,6 +37,10 @@ gradlePlugin {
             id = "fugitive.android.feature"
             implementationClass = "AndroidFeatureConventionPlugin"
         }
+        register("kmpLibrary") {
+            id = "fugitive.kmp.library"
+            implementationClass = "KmpLibraryConventionPlugin"
+        }
         register("jvmLibrary") {
             id = "fugitive.jvm.library"
             implementationClass = "JvmLibraryConventionPlugin"
