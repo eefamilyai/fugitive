@@ -13,7 +13,7 @@
   </head>
   <body>
     <div id="root"></div>
-    <div id="apk-banner" hidden style="position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;align-items:center;gap:6px;padding:6px 6px 6px 16px;background:#f97316;color:#fff;border-radius:10px;font-family:system-ui,sans-serif;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,.4);max-width:calc(100vw - 32px);">
+    <div id="apk-banner" style="display:none;position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;align-items:center;gap:6px;padding:6px 6px 6px 16px;background:#f97316;color:#fff;border-radius:10px;font-family:system-ui,sans-serif;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,.4);max-width:calc(100vw - 32px);">
       <a href="https://github.com/eefamilyai/fugitive/releases/download/v1.0.1/app-release.apk" style="color:#fff;text-decoration:none;padding:6px 4px;">Download Android APK</a>
       <button id="apk-close" aria-label="Close" style="background:transparent;border:0;color:#fff;font-size:20px;line-height:1;cursor:pointer;padding:4px 10px;">×</button>
     </div>
@@ -24,9 +24,9 @@
         var banner = document.getElementById("apk-banner");
         var close = document.getElementById("apk-close");
         try { if (localStorage.getItem(KEY)) return; } catch (e) {}
-        banner.hidden = false;
+        banner.style.display = "flex";
         close.addEventListener("click", function () {
-          banner.hidden = true;
+          banner.style.display = "none";
           try { localStorage.setItem(KEY, "1"); } catch (e) {}
         });
       })();
