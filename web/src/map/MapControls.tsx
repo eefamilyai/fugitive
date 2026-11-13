@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ScaleControl, type Map as MlMap } from "maplibre-gl";
 import { Sheet, ToggleRow } from "../ui/components";
 import { allStyles, resolveStyle, type MapStyle } from "./styles";
@@ -37,7 +37,7 @@ export function MapButtons(p: { map: MlMap | null; onLayers: () => void; zoom: n
   return (
     <div className={`map-btns ${p.embedded ? "embedded" : ""}`}>
       {p.children}
-      <button className="map-btn" onClick={toggleFullscreen} aria-label="Full screen" title="Full screen">⛶</button>
+      <FullscreenButton />
       <button className="map-btn" onClick={p.onLayers} aria-label="Map type" title="Map type">
         {s.preview ? <img src={s.preview} alt="" /> : null}<span style={{ position: "relative" }}>🗂️</span>
       </button>
@@ -49,12 +49,23 @@ export function MapButtons(p: { map: MlMap | null; onLayers: () => void; zoom: n
   );
 }
 
-/** Full screen for the map's wrapper (the element that holds the canvas and its buttons). */
-function toggleFullscreen() {
-  const wrap = document.querySelector<HTMLElement>(".map-wrap");
-  if (!wrap) return;
-  if (document.fullscreenElement) void document.exitFullscreen();
-  else void wrap.requestFullscreen?.();
+/** Full screen for the map's wrapper. The button flips to "Exit full screen" while active. */
+function FullscreenButton() {
+  const [on, setOn] = useState(() => !!document.fullscreenElement);
+  useEffect(() => {
+    const sync = () => setOn(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", sync);
+    return () => document.removeEventListener("fullscreenchange", sync);
+  }, []);
+  const toggle = () => {
+    if (document.fullscreenElement) void document.exitFullscreen();
+    else void document.querySelector<HTMLElement>(".map-wrap")?.requestFullscreen?.();
+  };
+  return (
+    <button className="map-btn" onClick={toggle} aria-label={on ? "Exit full screen" : "Full screen"} title={on ? "Exit full screen" : "Full screen"}>
+      {on ? "✕" : "⛶"}
+    </button>
+  );
 }
 
 /** MapLibre's scale bar, following the unit preference. */
