@@ -114,7 +114,12 @@ fun FugitiveRoot(initialPrefs: AppPreferences, pendingJoin: MutableStateFlow<Str
 
 private fun route(nav: NavHostController, section: Section, context: Context) {
     // Location sharing in the background is only kept alive during an active game.
-    if (section == Section.GAME) TrackingService.start(context) else TrackingService.stop(context)
+    if (section == Section.GAME) {
+        // start() returns false when the system refuses a background foreground-service start (Android 12+).
+        if (!TrackingService.start(context)) android.util.Log.w("Fugitive", "Location sharing couldn't start in the background")
+    } else {
+        TrackingService.stop(context)
+    }
     val current = nav.currentDestination
     val target: Any = when (section) {
         Section.HOME -> HomeRoute()

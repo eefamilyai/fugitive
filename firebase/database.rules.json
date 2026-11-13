@@ -70,7 +70,8 @@
               ".validate": "newData.isString() && newData.val().length <= 16"
             },
             "ready": {
-              ".write": "auth != null && root.child('lobbies').child($code).child('info/hostId').val() === auth.uid && data.parent().exists()"
+              ".write": "auth != null && data.parent().exists() && (auth.uid === $uid || root.child('lobbies').child($code).child('info/hostId').val() === auth.uid)",
+              ".validate": "newData.isBoolean()"
             }
           }
         },

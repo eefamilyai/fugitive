@@ -180,7 +180,12 @@ export class LobbyConnection {
       if (p.info === null) { s.lobby(null); return; }
       s.lobby({ info: { ...p.info, code }, config: p.config, members: p.members, roster: p.roster, game: p.game });
     };
-    const onErr = () => { /* permission revoked (kicked / lobby deleted) */ this.parts.info = null; emitLobby(); };
+    // Only a real permission denial means "kicked / lobby deleted". Transient errors (network, token
+    // refresh) keep the last known state so a brief blip never ends a live game.
+    const onErr = (err: Error & { code?: string }) => {
+      if (!/permission/i.test(String(err?.message ?? err?.code ?? ""))) return;
+      this.parts.info = null; emitLobby();
+    };
     const watch = (path: string, fn: (v: any) => void) =>
       this.unsubs.push(onValue(ref(db, `lobbies/${code}/${path}`), (snap) => { fn(snap.val()); emitLobby(); }, onErr));
     watch("info", (v) => { this.parts.info = v; });

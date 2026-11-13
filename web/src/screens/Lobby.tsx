@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Avatar, Button, Card, Dialog, Notice, Pill, QrCode, SectionHeader, Sheet, modeIcon, roleColor, roleIcon } from "../ui/components";
 import { sessions, useManager, useSession } from "../session/manager";
@@ -40,6 +40,14 @@ export function LobbyScreen() {
   const [api, setApi] = useState<MapApi | null>(null);
   const [cam, setCam] = useState({ zoom: 0, maxZoom: 22 });
   const [copied, setCopied] = useState(false);
+  const copyTimer = useRef<number | undefined>(undefined);
+  useEffect(() => () => window.clearTimeout(copyTimer.current), []);
+  const copyCode = (code: string) => {
+    navigator.clipboard?.writeText(code).then(
+      () => { setCopied(true); window.clearTimeout(copyTimer.current); copyTimer.current = window.setTimeout(() => setCopied(false), 1500); },
+      () => { /* clipboard blocked (insecure context / permission): fail quietly */ },
+    );
+  };
 
   const participants = useMemo(() => (lobby ? Object.values(lobby.members).filter((x) => x.online).map((x) => x.id) : []), [lobby]);
   const issues = useMemo(() => (lobby ? engine.validate(lobby, locs, participants) : []), [lobby, locs[lobby?.info.hostId ?? ""] != null, participants.join()]);
@@ -88,7 +96,7 @@ export function LobbyScreen() {
         <div className="row"><span className="label-caps grow">Join code</span>{lobby.info.locked && <Pill color="var(--warning)">🔒 Locked</Pill>}</div>
         <div className="row" style={{ marginTop: 6 }}>
           <span className="join-code grow">{lobby.info.code.slice(0, 3)} {lobby.info.code.slice(3)}</span>
-          <button className="icon-btn" aria-label="Copy" onClick={() => { navigator.clipboard?.writeText(lobby.info.code); setCopied(true); setTimeout(() => setCopied(false), 1500); }}>{copied ? "✅" : "📋"}</button>
+          <button className="icon-btn" aria-label="Copy" onClick={() => copyCode(lobby.info.code)}>{copied ? "✅" : "📋"}</button>
           <button className="icon-btn" aria-label="QR code" onClick={() => setQr(!qr)}>🔳</button>
           <button className="icon-btn" aria-label="Share" onClick={() => {
             const text = `Join my Fugitive manhunt! Code: ${lobby.info.code}`;

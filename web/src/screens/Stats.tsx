@@ -7,13 +7,15 @@ import { clock, distance, speed } from "../util/format";
 
 export function StatsScreen() {
   const nav = useNavigate();
-  const [acct, setAcct] = useState(currentAccount());
+  // Start unknown (not "signed out") so a returning Google user never sees the sign-in card flash.
+  const [acct, setAcct] = useState<ReturnType<typeof currentAccount> | undefined>(undefined);
+  const known = acct !== undefined;
   const [mine, setMine] = useState<Totals>(EMPTY_TOTALS);
   const [board, setBoard] = useState<LeaderEntry[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  useEffect(() => watchAccount(setAcct), []);
+  useEffect(() => watchAccount((a) => setAcct(a ?? null)), []);
   useEffect(() => watchLeaderboard(20, setBoard), []);
   useEffect(() => (acct?.google ? watchMyStats(acct.uid, setMine) : () => {}), [acct?.uid, acct?.google]);
 
@@ -33,7 +35,9 @@ export function StatsScreen() {
 
       {error && <Notice title={error} icon="⚠️" color="var(--danger)" />}
 
-      {!acct?.google ? (
+      {!known ? (
+        <p className="muted center">Loading your account…</p>
+      ) : !acct?.google ? (
         <Card>
           <div className="card-title"><span className="icon">🏅</span><div><h2>Save your progress</h2>
             <div className="muted">Sign in with Google to keep wins, catches and stats across games and devices. Guests play without saving.</div></div></div>

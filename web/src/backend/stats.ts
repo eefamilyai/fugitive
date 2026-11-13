@@ -2,7 +2,7 @@
 // Each signed-in player writes just their own rows:
 //   users/{uid}/stats            private running totals (+ the games already counted)
 //   leaderboard/{uid}            public summary, read by everyone so rankings can be shown
-import { getDatabase, get, onValue, ref, runTransaction, serverTimestamp, type DatabaseReference } from "firebase/database";
+import { getDatabase, get, limitToLast, onValue, orderByChild, query, ref, runTransaction, serverTimestamp } from "firebase/database";
 import { currentAccount, signIn } from "./firebase";
 import { getApp } from "firebase/app";
 
@@ -32,20 +32,18 @@ export async function recordGame(rec: GameRecord, name: string, avatar: string):
   if (!acct || !acct.google) return false; // guests don't save stats
   await signIn();
   const uid = acct.uid;
-  const seen = (await get(ref(db(), `users/${uid}/games/${safeKey(rec.gameKey)}`))).val();
-  if (seen) return false;
 
-  // Mark the game and bump private totals in one go.
-  const userRef = ref(db(), `users/${uid}/stats`);
-  await runTransaction(userRef, (cur: Totals | null) => {
-    const t: Totals = { ...EMPTY_TOTALS, ...(cur ?? {}) };
-    return add(t, rec);
-  });
-  await runTransaction(ref(db(), `users/${uid}/games/${safeKey(rec.gameKey)}`), (cur) => (cur ? undefined : { won: rec.won, at: serverTimestamp() }));
+  // 1) Claim this game atomically. Only the first claimant (across tabs/retries) proceeds, so a game
+  //    can never be counted twice. The rule also forbids overwriting an existing claim.
+  const claim = await runTransaction(ref(db(), `users/${uid}/games/${safeKey(rec.gameKey)}`),
+    (cur) => (cur ? undefined : { won: rec.won, at: serverTimestamp() }));
+  if (!claim.committed) return false;
 
-  // Public leaderboard summary.
-  await runTransaction(ref(db(), `leaderboard/${uid}`), (cur: (LeaderEntry & { updated?: unknown }) | null) => {
-    const base: LeaderEntry = { ...EMPTY_TOTALS, uid, name, avatar, ...(cur ?? {}) };
+  // 2) Only after the claim, bump private totals and the public leaderboard summary.
+  await runTransaction(ref(db(), `users/${uid}/stats`), (cur: Totals | null) => add({ ...EMPTY_TOTALS, ...(cur ?? {}) }, rec));
+  await runTransaction(ref(db(), `leaderboard/${uid}`), (cur: LeaderEntry | null) => {
+    // Stored totals come from `cur`; the current profile name/avatar always win.
+    const base: LeaderEntry = { ...EMPTY_TOTALS, ...(cur ?? {}), uid, name, avatar };
     return { ...add(base, rec), uid, name, avatar };
   });
   return true;
@@ -74,12 +72,12 @@ export function watchMyStats(uid: string, cb: (t: Totals) => void): () => void {
 
 /** Top players, ranked by wins, then win rate, then catches. Live. */
 export function watchLeaderboard(limit: number, cb: (rows: LeaderEntry[]) => void): () => void {
-  const r: DatabaseReference = ref(db(), "leaderboard");
-  return onValue(r, (snap) => {
+  // Server-side: only the top `limit` by wins are downloaded (needs the ".indexOn" rule on wins).
+  const q = query(ref(db(), "leaderboard"), orderByChild("wins"), limitToLast(limit));
+  return onValue(q, (snap) => {
     const rows = Object.values((snap.val() ?? {}) as Record<string, LeaderEntry>)
       .filter((x) => x && x.games > 0)
-      .sort((a, b) => b.wins - a.wins || rate(b) - rate(a) || b.catches - a.catches)
-      .slice(0, limit);
+      .sort((a, b) => b.wins - a.wins || rate(b) - rate(a) || b.catches - a.catches || a.uid.localeCompare(b.uid));
     cb(rows);
   });
 }

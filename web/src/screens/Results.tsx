@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Avatar, Button, Card, Pill, SectionHeader, eventIcon, roleColor } from "../ui/components";
 import { sessions, useManager, useSession } from "../session/manager";
 import { engine } from "../engine";
@@ -22,21 +22,31 @@ export function ResultsScreen() {
   const [framed, setFramed] = useState(false);
   const game = lobby?.game;
 
-  useEffect(() => { session?.trails().then(setTrails).catch(() => {}); }, [session, game?.round]);
+  // Ignore late responses from a previous session/round (prevents stale trails overwriting new ones).
+  useEffect(() => {
+    let live = true;
+    session?.trails().then((t) => { if (live) setTrails(t); }).catch(() => {});
+    return () => { live = false; };
+  }, [session, game?.round]);
   const stats: PlayerStats[] = useMemo(() => (game ? engine.stats(game, trails) : []), [game, trails]);
 
-  // Save this game to the signed-in player's stats (guests are skipped). Once per game.
+  // Save this game to the signed-in player's stats (guests are skipped). Once per game, and never
+  // for a draw/aborted result (no winners), which would otherwise be recorded as a loss.
+  const savedFor = useRef<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
   useEffect(() => {
     if (!session || !game?.result || !(session.selfId in game.players)) return;
+    if (game.result.winnerIds.length === 0) return;
+    const gameKey = `${session.code}_${game.startAt}`;
+    if (savedFor.current === gameKey) return;
     const mine = stats.find((s) => s.playerId === session.selfId);
     if (!mine) return;
-    const gameKey = `${session.code}_${game.startAt}`;
+    savedFor.current = gameKey;
     const won = game.result.winnerIds.includes(session.selfId);
     const me = game.players[session.selfId];
     recordGame({ gameKey, won, catches: mine.catches, survivedMs: mine.survivedMs, distanceMeters: mine.distanceMeters, topSpeedMps: mine.topSpeedMps },
-      me?.name ?? "Player", me?.avatar ?? "🙂").catch(() => {});
-    // Dependent on stats/session only once a result exists.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+      me?.name ?? "Player", me?.avatar ?? "🙂")
+      .catch((e: unknown) => { savedFor.current = null; setSaveError(e instanceof Error ? e.message : "Couldn't save stats"); });
   }, [game?.result, stats.length]);
 
   const pts = useMemo(() => Object.values(trails).flat().map((f) => [f.lng, f.lat] as [number, number]), [trails]);
@@ -84,6 +94,7 @@ export function ResultsScreen() {
             overlays={{ zone: finalZone, markers, trails: Object.entries(trails).map(([id, fx]) => ({ id, coords: fx.map((f) => [f.lng, f.lat] as [number, number]), color: playerColor(game.players[id]?.color ?? 11) })) }} />
           <MapButtons embedded map={api?.map ?? null} onLayers={() => setStyles(true)} zoom={cam.zoom} maxZoom={cam.maxZoom} />
         </div>
+        {saveError && <div className="muted small" style={{ color: "var(--danger)", marginTop: 8 }}>Couldn't save your stats: {saveError}</div>}
         {awards.length > 0 && <div className="row" style={{ overflowX: "auto", alignItems: "stretch" }}>{awards.map(([e, t, w, v]) => (
           <Card key={t} style={{ minWidth: 150 }}><div style={{ fontSize: 28 }}>{e}</div><div className="label-caps">{t}</div><h3>{w ?? "—"}</h3><div className="small">{v}</div></Card>))}</div>}
         <SectionHeader title="Leaderboard" />
