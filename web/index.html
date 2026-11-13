@@ -13,22 +13,33 @@
   </head>
   <body>
     <div id="root"></div>
-    <div id="apk-banner" style="display:none;position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;align-items:center;gap:6px;padding:6px 6px 6px 16px;background:#f97316;color:#fff;border-radius:10px;font-family:system-ui,sans-serif;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,.4);max-width:calc(100vw - 32px);">
-      <a href="https://github.com/eefamilyai/fugitive/releases/download/v1.0.1/app-release.apk" style="color:#fff;text-decoration:none;padding:6px 4px;">Download Android APK</a>
-      <button id="apk-close" aria-label="Close" style="background:transparent;border:0;color:#fff;font-size:20px;line-height:1;cursor:pointer;padding:4px 10px;">×</button>
-    </div>
     <script>
-      // Show the APK banner once; a dismissal is remembered so it never returns.
+      // APK banner: shown once, dismissed with ×, and remembered. Built at runtime and appended
+      // last with the top z-index so the app's full-screen layers (onboarding, sheets) can't cover it.
       (function () {
         var KEY = "fugitive-apk-banner-dismissed";
-        var banner = document.getElementById("apk-banner");
-        var close = document.getElementById("apk-close");
         try { if (localStorage.getItem(KEY)) return; } catch (e) {}
-        banner.style.display = "flex";
-        close.addEventListener("click", function () {
-          banner.style.display = "none";
-          try { localStorage.setItem(KEY, "1"); } catch (e) {}
-        });
+        function show() {
+          var bar = document.createElement("div");
+          bar.setAttribute("style", "position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:2147483647;display:flex;align-items:center;gap:6px;padding:6px 6px 6px 16px;background:#f97316;color:#fff;border-radius:10px;font-family:system-ui,sans-serif;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,.4);max-width:calc(100vw - 32px);");
+          var link = document.createElement("a");
+          link.href = "https://github.com/eefamilyai/fugitive/releases/download/v1.0.1/app-release.apk";
+          link.textContent = "Download Android APK";
+          link.setAttribute("style", "color:#fff;text-decoration:none;padding:6px 4px;");
+          var x = document.createElement("button");
+          x.type = "button";
+          x.setAttribute("aria-label", "Close");
+          x.textContent = "×";
+          x.setAttribute("style", "background:transparent;border:0;color:#fff;font-size:22px;line-height:1;cursor:pointer;padding:4px 10px;");
+          x.addEventListener("click", function (e) {
+            e.preventDefault(); e.stopPropagation();
+            bar.remove();
+            try { localStorage.setItem(KEY, "1"); } catch (err) {}
+          });
+          bar.appendChild(link); bar.appendChild(x);
+          document.body.appendChild(bar);
+        }
+        if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", show); else show();
       })();
     </script>
     <script type="module" src="/src/main.tsx"></script>
