@@ -4,6 +4,7 @@ import { sessions, useManager, useSession } from "../session/manager";
 import { engine } from "../engine";
 import { usePrefs } from "../prefs";
 import { clock, distance, playerColor, speed } from "../util/format";
+import { recordGame } from "../backend/stats";
 import { GameMap, type MapApi } from "../map/GameMap";
 import { MapButtons, MapStyleSheet } from "../map/MapControls";
 import type { LocationFix, PlayerStats } from "../types";
@@ -23,6 +24,20 @@ export function ResultsScreen() {
 
   useEffect(() => { session?.trails().then(setTrails).catch(() => {}); }, [session, game?.round]);
   const stats: PlayerStats[] = useMemo(() => (game ? engine.stats(game, trails) : []), [game, trails]);
+
+  // Save this game to the signed-in player's stats (guests are skipped). Once per game.
+  useEffect(() => {
+    if (!session || !game?.result || !(session.selfId in game.players)) return;
+    const mine = stats.find((s) => s.playerId === session.selfId);
+    if (!mine) return;
+    const gameKey = `${session.code}_${game.startAt}`;
+    const won = game.result.winnerIds.includes(session.selfId);
+    const me = game.players[session.selfId];
+    recordGame({ gameKey, won, catches: mine.catches, survivedMs: mine.survivedMs, distanceMeters: mine.distanceMeters, topSpeedMps: mine.topSpeedMps },
+      me?.name ?? "Player", me?.avatar ?? "🙂").catch(() => {});
+    // Dependent on stats/session only once a result exists.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [game?.result, stats.length]);
 
   const pts = useMemo(() => Object.values(trails).flat().map((f) => [f.lng, f.lat] as [number, number]), [trails]);
   if (api && !framed && (pts.length || game?.zone)) {

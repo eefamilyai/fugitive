@@ -10,6 +10,7 @@ import { GameScreen } from "./screens/Game";
 import { ResultsScreen } from "./screens/Results";
 import { AppSettings } from "./screens/AppSettings";
 import { HowToPlay } from "./screens/HowToPlay";
+import { StatsScreen } from "./screens/Stats";
 
 /** The active lobby's phase decides the screen, exactly like the Android app. */
 function useSessionRouting() {
@@ -61,6 +62,7 @@ export function App() {
       <Route path="/results" element={<ResultsScreen />} />
       <Route path="/settings" element={<AppSettings />} />
       <Route path="/how" element={<HowToPlay />} />
+      <Route path="/stats" element={<StatsScreen />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

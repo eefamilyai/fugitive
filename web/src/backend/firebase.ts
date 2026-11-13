@@ -1,7 +1,10 @@
 // Firebase Realtime Database transport — same paths, formats and security rules as the Android app
 // (backend/firebase in the Kotlin project). Players on web and Android share lobbies seamlessly.
 import { initializeApp, type FirebaseApp } from "firebase/app";
-import { connectAuthEmulator, getAuth, signInAnonymously, type Auth } from "firebase/auth";
+import {
+  connectAuthEmulator, getAuth, GoogleAuthProvider, onAuthStateChanged, signInAnonymously, signInWithPopup, signInWithRedirect,
+  signOut as fbSignOut, type Auth, type User,
+} from "firebase/auth";
 import {
   connectDatabaseEmulator, get, getDatabase, limitToLast, onChildAdded, onChildChanged, onChildRemoved, onDisconnect,
   onValue, push, query, ref, runTransaction, serverTimestamp, set, update, type Database, type DatabaseReference, type Query,
@@ -39,6 +42,43 @@ export async function signIn(): Promise<string> {
   const cred = await signInAnonymously(auth);
   return cred.user.uid;
 }
+
+/** The current user, or null when only a guest (anonymous) session exists. */
+export function currentAccount(): { uid: string; name: string | null; photo: string | null; google: boolean } | null {
+  if (!app) return null;
+  const u = auth.currentUser;
+  if (!u) return null;
+  return { uid: u.uid, name: u.displayName, photo: u.photoURL, google: !u.isAnonymous };
+}
+
+/** Subscribe to Google-account changes. Returns an unsubscribe function. */
+export function watchAccount(cb: (a: ReturnType<typeof currentAccount>) => void): () => void {
+  ensure();
+  return onAuthStateChanged(auth, () => cb(currentAccount()));
+}
+
+/** Sign in with Google. Popup on desktop/Android; redirect fallback when popups are blocked. */
+export async function signInWithGoogle(): Promise<void> {
+  ensure();
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: "select_account" });
+  try {
+    await signInWithPopup(auth, provider);
+  } catch (e: any) {
+    if (e?.code === "auth/popup-blocked" || e?.code === "auth/operation-not-supported-in-this-environment") {
+      await signInWithRedirect(auth, provider);
+      return;
+    }
+    throw e;
+  }
+}
+
+export async function signOutAccount(): Promise<void> {
+  ensure();
+  await fbSignOut(auth);
+}
+
+export type { User };
 
 /** Removes nulls/undefined and empty containers, like the Android FireJson encoder. */
 export function clean<T>(v: T): T {

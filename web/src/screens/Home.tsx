@@ -70,6 +70,8 @@ export function Home() {
             <div className="muted small">Web and Android players join the same lobbies. Practice mode with bots is in the Android app.</div></div></div>
       </Card>
 
+      <Button kind="secondary" block onClick={() => nav("/stats")}>🏅 Stats & leaderboard</Button>
+      <div style={{ height: 8 }} />
       <Button kind="secondary" block onClick={() => nav("/how")}>❔ How to play</Button>
     </div>
 
