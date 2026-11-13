@@ -106,6 +106,7 @@ button.list-row { cursor: pointer; }
 /* Map */
 .map-wrap { position: relative; overflow: hidden; } .map-wrap > .map-canvas, .map-wrap > .map-canvas.maplibregl-map { position: absolute; inset: 0; } /* beats maplibre-gl.css */
 .map-wrap.fill { position: absolute; inset: 0; }
+.map-wrap:fullscreen { position: fixed; inset: 0; width: 100vw; height: 100vh; background: #0B0F15; }
 .map-error { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); background: rgba(0,0,0,.65); padding: 6px 10px; border-radius: 8px; font-size: 12px; }
 .maplibregl-ctrl-attrib { font-size: 10px; }
 .pm { position: relative; display: flex; flex-direction: column; align-items: center; cursor: pointer; transform: translateY(14px); }

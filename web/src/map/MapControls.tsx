@@ -37,6 +37,7 @@ export function MapButtons(p: { map: MlMap | null; onLayers: () => void; zoom: n
   return (
     <div className={`map-btns ${p.embedded ? "embedded" : ""}`}>
       {p.children}
+      <button className="map-btn" onClick={toggleFullscreen} aria-label="Full screen" title="Full screen">⛶</button>
       <button className="map-btn" onClick={p.onLayers} aria-label="Map type" title="Map type">
         {s.preview ? <img src={s.preview} alt="" /> : null}<span style={{ position: "relative" }}>🗂️</span>
       </button>
@@ -46,6 +47,14 @@ export function MapButtons(p: { map: MlMap | null; onLayers: () => void; zoom: n
       </div>
     </div>
   );
+}
+
+/** Full screen for the map's wrapper (the element that holds the canvas and its buttons). */
+function toggleFullscreen() {
+  const wrap = document.querySelector<HTMLElement>(".map-wrap");
+  if (!wrap) return;
+  if (document.fullscreenElement) void document.exitFullscreen();
+  else void wrap.requestFullscreen?.();
 }
 
 /** MapLibre's scale bar, following the unit preference. */
